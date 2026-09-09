@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,12 +64,14 @@ export default function LoginPage() {
   return (
     <main className="auth-page">
       <div className="auth-card auth-card-wide">
-        <Link href="/" className="brand"><span className="brandMark">FA</span><span>FantAsta</span></Link>
-        <span className="eyebrow">ACCOUNT</span>
-        <h1>{mode === "login" ? "Accedi a FantAsta" : "Crea il tuo account"}</h1>
-        <p>{mode === "login" ? "Entra nelle tue leghe e ritrova asta, rosa e formazione su ogni dispositivo." : "Registrati per creare leghe, importare RAMERA e invitare gli amici."}</p>
+        <Link href="/" className="brand"><BrandLogo /></Link>
+        <div className="auth-heading">
+          <span className="eyebrow">IL TUO FANTACALCIO, PIÙ INTELLIGENTE</span>
+          <h1>{mode === "login" ? "Bentornato" : "Crea il tuo account"}</h1>
+          <p>{mode === "login" ? "Accedi a leghe, asta, rosa, formazione e analisi da un unico centro di comando." : "Registrati per creare leghe, importare RAMERA e gestire la stagione con FantAsta."}</p>
+        </div>
 
-        <div className="config-state ready"><ShieldCheck size={18}/><div><strong>Supabase collegato</strong><span>Account e dati sono separati per utente e lega.</span></div></div>
+        <div className="config-state ready"><ShieldCheck size={18}/><div><strong>Account protetto da Supabase</strong><span>Dati separati per utente e per lega.</span></div></div>
 
         <form className="auth-form" onSubmit={submit}>
           {mode === "signup" && <label><span>Nome</span><div className="input-wrap"><UserRound size={17}/><input value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Jason" required /></div></label>}
