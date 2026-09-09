@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Gavel, LogOut, Plus, ShieldCheck, Upload, UsersRound } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { useLeague } from "@/components/league-provider";
 import { BrandLogo } from "@/components/brand-logo";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { ramera } from "@/data/ramera";
@@ -14,6 +15,7 @@ type League = { id: string; name: string; season: string; mode: string; budget: 
 export default function LeaguesPage() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
+  const { selectLeague, refreshLeagues } = useLeague();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -37,6 +39,11 @@ export default function LeaguesPage() {
     if (user) loadLeagues();
   }, [loading, user, router, loadLeagues]);
 
+  function openLeague(leagueId: string) {
+    selectLeague(leagueId);
+    router.push("/dashboard");
+  }
+
   async function createLeague(e: FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -49,7 +56,10 @@ export default function LeaguesPage() {
     if (leagueError) setError(leagueError.message);
     else {
       await supabase.from("league_members").insert({ league_id: data.id, user_id: user.id, team_name: user.user_metadata?.display_name || "La mia squadra", is_admin: true });
-      setName(""); setShowCreate(false); await loadLeagues();
+      selectLeague(data.id);
+      setName(""); setShowCreate(false);
+      await Promise.all([loadLeagues(), refreshLeagues()]);
+      router.push("/dashboard");
     }
     setBusy(false);
   }
@@ -61,7 +71,7 @@ export default function LeaguesPage() {
     if (!supabase) return;
 
     const existing = leagues.find(l => l.legacy_key === "ramera-2026-27");
-    if (existing) { router.push("/dashboard"); setBusy(false); return; }
+    if (existing) { openLeague(existing.id); setBusy(false); return; }
 
     const { data: league, error: leagueError } = await supabase.from("leagues").insert({
       owner_id: user.id,
@@ -103,7 +113,8 @@ export default function LeaguesPage() {
     const { error: statusError } = await supabase.from("player_status").upsert(statusRows, { onConflict: "league_id,player_name" });
     if (statusError) { setError(statusError.message); setBusy(false); return; }
 
-    await loadLeagues();
+    selectLeague(league.id);
+    await Promise.all([loadLeagues(), refreshLeagues()]);
     setBusy(false);
     router.push("/dashboard");
   }
@@ -117,21 +128,21 @@ export default function LeaguesPage() {
         <div className="hub-user"><span>{user.user_metadata?.display_name || user.email}</span><button onClick={async()=>{await signOut(); router.replace("/login");}}><LogOut size={16}/> Esci</button></div>
       </header>
       <section className="hub-content">
-        <div className="hub-heading"><div><span className="eyebrow">CENTRO DI COMANDO</span><h1>Le mie leghe</h1><p>Crea, importa e gestisci ogni lega FantAsta da un unico spazio.</p></div><button className="secondary-btn" onClick={()=>setShowCreate(!showCreate)}><Plus size={17}/> Nuova lega</button></div>
+        <div className="hub-heading"><div><span className="eyebrow">CENTRO DI COMANDO</span><h1>Le mie aste</h1><p>Ogni lega ha nome, rosa e dati propri. Aprine una per renderla l'asta attiva.</p></div><button className="secondary-btn" onClick={()=>setShowCreate(!showCreate)}><Plus size={17}/> Nuova asta</button></div>
 
         {error && <div className="form-alert error">{error}</div>}
 
         {showCreate && <form className="create-league-card" onSubmit={createLeague}>
-          <label><span>Nome lega</span><input value={name} onChange={e=>setName(e.target.value)} placeholder="Es. Lega amici" required/></label>
+          <label><span>Nome asta</span><input value={name} onChange={e=>setName(e.target.value)} placeholder="Es. I Veterani" required/></label>
           <label><span>Modalità</span><select value={mode} onChange={e=>setMode(e.target.value as "classic"|"mantra")}><option value="mantra">Mantra</option><option value="classic">Classic</option></select></label>
           <label><span>Budget</span><input type="number" min={100} value={budget} onChange={e=>setBudget(Number(e.target.value))}/></label>
           <label><span>Rosa</span><input type="number" min={15} value={rosterSize} onChange={e=>setRosterSize(Number(e.target.value))}/></label>
-          <button className="primary-btn" disabled={busy}>Crea lega</button>
+          <button className="primary-btn" disabled={busy}>Crea asta</button>
         </form>}
 
         <div className="league-grid">
-          {!leagues.some(l=>l.legacy_key==="ramera-2026-27") && <article className="league-tile import-tile"><div className="league-icon"><Upload/></div><span className="eyebrow">IMPORT PRONTO</span><h2>RAMERA 2026/27</h2><p>10 squadre · 273 acquisti · Mantra · budget 1000. Importa il backup reale già caricato in FantAsta.</p><div className="import-check"><ShieldCheck size={16}/> Nessuna modifica al backup originale</div><button className="primary-btn" onClick={importRamera} disabled={busy}>{busy?"Importazione…":"Importa RAMERA"} <ArrowRight size={17}/></button></article>}
-          {leagues.map(league => <article className="league-tile" key={league.id}><div className="league-icon"><Gavel/></div><span className="eyebrow">{league.mode.toUpperCase()} · {league.season}</span><h2>{league.name}</h2><p>Budget {league.budget} · rosa {league.roster_size}. Dati salvati nel tuo account Supabase.</p><div className="league-meta"><UsersRound size={16}/> {league.legacy_key ? "Lega importata" : "Lega personale"}</div><Link className="primary-btn" href={league.legacy_key==="ramera-2026-27"?"/dashboard":"/lega"}>Apri lega <ArrowRight size={17}/></Link></article>)}
+          {!leagues.some(l=>l.legacy_key==="ramera-2026-27") && <article className="league-tile import-tile"><div className="league-icon"><Upload/></div><span className="eyebrow">IMPORT PRONTO</span><h2>RAMERA 2026/27</h2><p>10 squadre · 273 acquisti · Mantra · budget 1000. Importa questa specifica asta dal backup reale.</p><div className="import-check"><ShieldCheck size={16}/> RAMERA resterà una lega separata dalle altre</div><button className="primary-btn" onClick={importRamera} disabled={busy}>{busy?"Importazione…":"Importa RAMERA"} <ArrowRight size={17}/></button></article>}
+          {leagues.map(league => <article className="league-tile" key={league.id}><div className="league-icon"><Gavel/></div><span className="eyebrow">{league.mode.toUpperCase()} · {league.season}</span><h2>{league.name}</h2><p>Budget {league.budget} · rosa {league.roster_size}. Questa asta ha dati e gestione indipendenti.</p><div className="league-meta"><UsersRound size={16}/> {league.legacy_key ? "Asta importata" : "Asta personale"}</div><button className="primary-btn" onClick={()=>openLeague(league.id)}>Apri asta <ArrowRight size={17}/></button></article>)}
         </div>
       </section>
     </main>
