@@ -25,5 +25,6 @@ npm run dev
 1. Applicare `supabase/migrations/0001_initial.sql`
 2. Configurare `NEXT_PUBLIC_SUPABASE_URL`
 3. Configurare `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Eseguire un nuovo deploy Vercel dopo aver salvato le variabili ambiente
 
 L'app funziona anche senza queste variabili in modalità RAMERA demo/importata.
