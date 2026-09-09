@@ -54,10 +54,16 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("leagues")
       .select("id,name,season,mode,budget,roster_size,legacy_key,metadata")
       .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("FantAsta: impossibile caricare le aste", error);
+      setLoading(false);
+      return;
+    }
 
     const next = (data ?? []) as ActiveLeague[];
     setLeagues(next);
@@ -65,12 +71,17 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
     const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
     const validStored = stored && next.some((league) => league.id === stored) ? stored : null;
     const preferred = validStored ?? next.find((league) => league.legacy_key === "ramera-2026-27")?.id ?? next[0]?.id ?? null;
-    setActiveId((current) => current && next.some((league) => league.id === current) ? current : preferred);
+
+    setActiveId((current) => {
+      const selected = current && next.some((league) => league.id === current) ? current : preferred;
+      if (selected && typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEY, selected);
+      return selected;
+    });
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
-    if (!authLoading) refreshLeagues();
+    if (!authLoading) void refreshLeagues();
   }, [authLoading, refreshLeagues]);
 
   const selectLeague = useCallback((leagueId: string) => {
