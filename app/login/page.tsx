@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 
 export default function LoginPage() {
   const router = useRouter();
-  const search = useSearchParams();
   const { user, loading } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [displayName, setDisplayName] = useState("");
@@ -24,8 +23,10 @@ export default function LoginPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (search.get("confirmed")) setMessage("Email confermata. Ora puoi accedere.");
-  }, [search]);
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("confirmed")) {
+      setMessage("Email confermata. Ora puoi accedere.");
+    }
+  }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
