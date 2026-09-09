@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, BarChart3, CalendarDays, Gavel, LayoutDashboard, LogOut, Shield, Sparkles, Trophy, UsersRound } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { BrandLogo } from "@/components/brand-logo";
 
 const nav = [
   ["/dashboard", "Dashboard", LayoutDashboard],
@@ -31,7 +32,7 @@ export function AppShell({ children, active }: { children: React.ReactNode; acti
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        <Link href="/dashboard" className="brand"><span className="brandMark">FA</span><span>FantAsta</span></Link>
+        <Link href="/dashboard" className="brand"><BrandLogo /></Link>
         <div className="league-card"><div><span className="live-dot" /> RAMERA</div><strong>2026/27</strong><small>Mantra · 10 squadre</small></div>
         <nav className="side-nav">
           <Link href="/leagues"><UsersRound size={18}/><span>Le mie leghe</span></Link>
