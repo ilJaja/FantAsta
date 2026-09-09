@@ -1,34 +1,29 @@
 # FantAsta 2.0
 
-Web app multiutente per accompagnare una lega Fantacalcio dall'asta alla gestione settimanale della stagione.
+Applicazione Next.js multi-lega per asta e gestione stagionale del Fantacalcio.
 
-## Obiettivi MVP
+## Stato attuale
 
-- Account e autenticazione
-- Creazione e gestione di più leghe
-- Supporto Classic e Mantra
-- Asta live con budget e rose condivise
-- Import delle aste legacy FantAsta
-- Dashboard rosa e formazione
-- Consigli AI settimanali e briefing giornata
-- Analisi delle rose avversarie
+- Dashboard RAMERA importata dal backup reale
+- 273 acquisti e 10 squadre disponibili nell'app
+- Rosa Jason con ruoli/squadre principali
+- Modulo 3-4-2-1 e prima formazione base
+- Asta, Rosa, Formazione, Giornata, Analisi e Lega
+- API health check
+- Client Supabase predisposto
+- Migrazione PostgreSQL con RLS per utenti, leghe, membri, acquisti, status e formazioni
 
-## Stack
-
-- Next.js + TypeScript
-- React
-- Supabase (fase successiva: auth + PostgreSQL)
-- Vercel
-
-## Sviluppo locale
+## Sviluppo
 
 ```bash
 npm install
 npm run dev
 ```
 
-Aprire http://localhost:3000.
+## Supabase
 
-## Stato
+1. Applicare `supabase/migrations/0001_initial.sql`
+2. Configurare `NEXT_PUBLIC_SUPABASE_URL`
+3. Configurare `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-Fase 1: fondazione applicazione e design system.
+L'app funziona anche senza queste variabili in modalità RAMERA demo/importata.
