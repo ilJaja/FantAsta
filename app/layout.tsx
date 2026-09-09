@@ -3,6 +3,7 @@ import "./globals.css";
 import "./auth-extra.css";
 import "./gold-theme.css";
 import { AuthProvider } from "@/components/auth-provider";
+import { LeagueProvider } from "@/components/league-provider";
 
 export const metadata: Metadata = {
   title: "FantAsta",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="it">
-      <body><AuthProvider>{children}</AuthProvider></body>
+      <body><AuthProvider><LeagueProvider>{children}</LeagueProvider></AuthProvider></body>
     </html>
   );
 }
