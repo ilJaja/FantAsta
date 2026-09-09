@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Gavel, LogOut, Plus, ShieldCheck, Upload, UsersRound } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { BrandLogo } from "@/components/brand-logo";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { ramera } from "@/data/ramera";
 
@@ -112,11 +113,11 @@ export default function LeaguesPage() {
   return (
     <main className="league-hub">
       <header className="hub-topbar">
-        <Link href="/leagues" className="brand"><span className="brandMark">FA</span><span>FantAsta</span></Link>
+        <Link href="/leagues" className="brand"><BrandLogo /></Link>
         <div className="hub-user"><span>{user.user_metadata?.display_name || user.email}</span><button onClick={async()=>{await signOut(); router.replace("/login");}}><LogOut size={16}/> Esci</button></div>
       </header>
       <section className="hub-content">
-        <div className="hub-heading"><div><span className="eyebrow">IL TUO FANTACALCIO</span><h1>Le mie leghe</h1><p>Crea una nuova lega oppure porta RAMERA nel database condiviso.</p></div><button className="secondary-btn" onClick={()=>setShowCreate(!showCreate)}><Plus size={17}/> Nuova lega</button></div>
+        <div className="hub-heading"><div><span className="eyebrow">CENTRO DI COMANDO</span><h1>Le mie leghe</h1><p>Crea, importa e gestisci ogni lega FantAsta da un unico spazio.</p></div><button className="secondary-btn" onClick={()=>setShowCreate(!showCreate)}><Plus size={17}/> Nuova lega</button></div>
 
         {error && <div className="form-alert error">{error}</div>}
 
