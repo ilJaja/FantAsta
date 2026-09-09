@@ -79,8 +79,8 @@ export default function LoginPage() {
           <button className="primary-btn center" disabled={busy}>{busy ? "Attendi…" : mode === "login" ? "Accedi" : "Crea account"}</button>
         </form>
 
-        <button className="text-button" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); setMessage(""); }}>
-          {mode === "login" ? "Non hai un account? Registrati" : "Hai già un account? Accedi"}
+        <button className="text-button" type="button" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); setMessage(""); }}>
+          {mode === "login" ? "Non hai un account? Crea account" : "Hai già un account? Accedi"}
         </button>
       </div>
     </main>
