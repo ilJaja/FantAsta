@@ -19,6 +19,7 @@ type LeagueContextValue = {
   leagues: ActiveLeague[];
   activeLeague: ActiveLeague | null;
   loading: boolean;
+  error: string | null;
   selectLeague: (leagueId: string) => void;
   refreshLeagues: () => Promise<void>;
 };
@@ -27,6 +28,7 @@ const LeagueContext = createContext<LeagueContextValue>({
   leagues: [],
   activeLeague: null,
   loading: true,
+  error: null,
   selectLeague: () => {},
   refreshLeagues: async () => {},
 });
@@ -38,34 +40,54 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
   const [leagues, setLeagues] = useState<ActiveLeague[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshLeagues = useCallback(async () => {
     if (!user) {
       setLeagues([]);
       setActiveId(null);
+      setError(null);
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    setError(null);
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
+      setError("Supabase non configurato");
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("leagues")
-      .select("id,name,season,mode,budget,roster_size,legacy_key,metadata")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("FantAsta: impossibile caricare le aste", error);
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      setError(sessionError?.message || "Sessione non disponibile");
       setLoading(false);
       return;
     }
 
-    const next = (data ?? []) as ActiveLeague[];
+    async function fetchLeagues() {
+      return supabase!
+        .from("leagues")
+        .select("id,name,season,mode,budget,roster_size,legacy_key,metadata")
+        .order("created_at", { ascending: false });
+    }
+
+    let result = await fetchLeagues();
+    if (!result.error && (result.data ?? []).length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      result = await fetchLeagues();
+    }
+
+    if (result.error) {
+      console.error("FantAsta: impossibile caricare le aste", result.error);
+      setError(result.error.message);
+      setLoading(false);
+      return;
+    }
+
+    const next = (result.data ?? []) as ActiveLeague[];
     setLeagues(next);
 
     const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
@@ -94,7 +116,10 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
     [leagues, activeId],
   );
 
-  const value = useMemo(() => ({ leagues, activeLeague, loading, selectLeague, refreshLeagues }), [leagues, activeLeague, loading, selectLeague, refreshLeagues]);
+  const value = useMemo(
+    () => ({ leagues, activeLeague, loading, error, selectLeague, refreshLeagues }),
+    [leagues, activeLeague, loading, error, selectLeague, refreshLeagues],
+  );
 
   return <LeagueContext.Provider value={value}>{children}</LeagueContext.Provider>;
 }
