@@ -3,6 +3,7 @@ import "./globals.css";
 import "./auth-extra.css";
 import "./gold-theme.css";
 import "./dashboard-command.css";
+import "./matchday-center.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { LeagueProvider } from "@/components/league-provider";
 
