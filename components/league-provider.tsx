@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 
 export type ActiveLeague = {
   id: string;
+  owner_id: string;
   name: string;
   season: string;
   mode: "classic" | "mantra";
@@ -70,7 +71,7 @@ export function LeagueProvider({ children }: { children: React.ReactNode }) {
     async function fetchLeagues() {
       return supabase!
         .from("leagues")
-        .select("id,name,season,mode,budget,roster_size,legacy_key,metadata")
+        .select("id,owner_id,name,season,mode,budget,roster_size,legacy_key,metadata")
         .order("created_at", { ascending: false });
     }
 

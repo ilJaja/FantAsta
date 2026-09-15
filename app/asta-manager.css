@@ -1,0 +1,41 @@
+.asta-manager{display:flex;flex-direction:column;gap:20px}
+.asta-head-actions{display:flex;gap:10px;flex-wrap:wrap}
+.danger-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(208,59,59,.45);background:rgba(208,59,59,.12);color:#ff9d9d;padding:11px 14px;border-radius:11px;font-weight:800;cursor:pointer}
+.danger-btn:hover:not(:disabled){background:rgba(208,59,59,.2);border-color:rgba(208,59,59,.7)}
+.danger-btn:disabled,.primary-btn:disabled,.secondary-btn:disabled,.icon-btn:disabled{opacity:.5;cursor:not-allowed}
+.asta-note{color:var(--muted);font-size:13px;margin:10px 0 0}
+.asta-note.warn{display:flex;align-items:center;gap:8px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.35);color:#e7cf8f;border-radius:12px;padding:11px 13px;margin:0}
+.asta-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.asta-stat{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.asta-stat.featured{border-color:rgba(212,175,55,.5);background:linear-gradient(180deg,rgba(212,175,55,.1),var(--surface))}
+.asta-stat-icon{width:40px;height:40px;border-radius:12px;background:var(--surface2);display:grid;place-items:center;color:var(--green2)}
+.asta-stat small{color:var(--muted);font-size:12px;display:block}
+.asta-stat strong{font-size:22px}
+.asta-add-form{display:grid;grid-template-columns:2fr 1.4fr 1fr auto;gap:12px;align-items:end;margin-top:14px}
+.asta-add-form label{display:grid;gap:7px;color:var(--muted);font-size:13px;font-weight:700}
+.asta-add-form input,.asta-add-form select{border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);padding:11px;font:inherit}
+.asta-add-form .primary-btn{min-height:44px}
+.asta-empty{color:var(--muted);padding:8px 0}
+.asta-table{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.asta-row{display:grid;grid-template-columns:2fr 1.4fr 1fr auto;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.asta-row.summary{grid-template-columns:2fr 1fr 1fr 1fr}
+.asta-row-head{background:transparent;border:0;padding:4px 14px;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.asta-row.mine{border-color:rgba(212,175,55,.5)}
+.asta-player{font-weight:700}
+.asta-team{color:var(--muted)}
+.asta-price b{color:var(--ink)}
+.asta-price input,.asta-actions input{width:90px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);padding:7px 9px;font:inherit}
+.asta-credits{font-weight:800;color:var(--green2)}
+.asta-actions{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.asta-confirm{color:#ff9d9d;font-size:12px;font-weight:700;margin-right:2px}
+.icon-btn{display:inline-grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);cursor:pointer}
+.icon-btn:hover:not(:disabled){border-color:var(--green2);color:var(--green2)}
+.icon-btn.ok:hover:not(:disabled){border-color:var(--green2);color:var(--green2)}
+.icon-btn.danger:hover:not(:disabled){border-color:rgba(208,59,59,.7);color:#ff9d9d}
+.asta-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:20px;z-index:60}
+.asta-modal{max-width:440px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 24px 60px #0007;text-align:center}
+.asta-modal-icon{width:52px;height:52px;border-radius:14px;background:rgba(208,59,59,.12);border:1px solid rgba(208,59,59,.35);color:#ff9d9d;display:grid;place-items:center;margin:0 auto 14px}
+.asta-modal h3{font-size:22px;margin:0 0 8px}
+.asta-modal p{color:var(--muted);line-height:1.55;margin:0 0 18px}
+.asta-modal-actions{display:flex;gap:10px;justify-content:center}
+@media(max-width:800px){.asta-stats{grid-template-columns:1fr 1fr}.asta-add-form{grid-template-columns:1fr}.asta-row,.asta-row.summary{grid-template-columns:1.5fr 1fr auto;font-size:14px}.asta-row-head{display:none}}
