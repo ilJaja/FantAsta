@@ -1,12 +1,16 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Check, Coins, Gavel, Pencil, Plus, RefreshCw, RotateCcw, Trash2, UsersRound, X } from "lucide-react";
+import { AlertTriangle, Brain, Check, Coins, Gavel, Pencil, Plus, RefreshCw, RotateCcw, Trash2, UsersRound, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-provider";
 import { useLeague } from "@/components/league-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { AstaStrategy } from "@/components/asta-strategy";
+import type { LeagueConfig } from "@/lib/asta-engine";
+import { ramera } from "@/data/ramera";
 import "@/app/asta-manager.css";
+import "@/app/asta-strategy.css";
 
 type Member = { team_name: string; user_id: string | null; is_admin?: boolean };
 type Buy = { id: string; team_name: string; player_name_snapshot: string; price: number };
@@ -34,6 +38,9 @@ export function AuctionManager() {
   // delete / reset confirms
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showReset, setShowReset] = useState(false);
+
+  // tab Gestione / Strategia (solo mantra)
+  const [view, setView] = useState<"gestione" | "strategia">("gestione");
 
   const isOwner = useMemo(
     () => Boolean(activeLeague && user && activeLeague.owner_id === user.id),
@@ -194,9 +201,68 @@ export function AuctionManager() {
     [buys],
   );
 
+  const cfg = useMemo<LeagueConfig | null>(() => {
+    if (!activeLeague) return null;
+    const meta = activeLeague.metadata ?? {};
+    return {
+      budget: activeLeague.budget,
+      roster_size: activeLeague.roster_size,
+      mode: activeLeague.mode as "mantra" | "classic",
+      minimums: (meta.minimums as { Por: number; Dif: number; Cen: number; Att: number }) ??
+        { Por: 3, Dif: 6, Cen: 6, Att: 4 },
+      formation: (meta.formation as string) ?? undefined,
+      fan_of: (meta.fan_of as Record<string, string>) ?? undefined,
+    };
+  }, [activeLeague]);
+
+  const unavailable = useMemo<Record<string, string>>(() => {
+    if (activeLeague?.legacy_key === "ramera-2026-27") {
+      return ramera.unavailable as Record<string, string>;
+    }
+    return {};
+  }, [activeLeague]);
+
+  const myTeam = useMemo(
+    () => members.find((m) => m.user_id === user?.id)?.team_name ?? teamNames[0] ?? "",
+    [members, user, teamNames],
+  );
+
   return (
     <AppShell active="/asta">
       <div className="asta-manager">
+
+        {/* Tab Gestione / Strategia (solo mantra) */}
+        {activeLeague?.mode === "mantra" && (
+          <div className="asta-view-tabs">
+            <button
+              className={`asta-view-tab ${view === "gestione" ? "active" : ""}`}
+              onClick={() => setView("gestione")}
+            >
+              <Gavel size={15} /> Gestione acquisti
+            </button>
+            <button
+              className={`asta-view-tab ${view === "strategia" ? "active" : ""}`}
+              onClick={() => setView("strategia")}
+            >
+              <Brain size={15} /> Strategia AI
+            </button>
+          </div>
+        )}
+
+        {/* ─── TAB STRATEGIA ─── */}
+        {view === "strategia" && cfg && (
+          <AstaStrategy
+            buys={buys}
+            teams={teamNames}
+            myTeam={myTeam}
+            cfg={cfg}
+            unavailable={unavailable}
+            onRefresh={() => void load()}
+          />
+        )}
+
+        {/* ─── TAB GESTIONE ─── */}
+        {view === "gestione" && <>
         <div className="page-head">
           <div>
             <span className="eyebrow">ASTA · GESTIONE LIVE</span>
@@ -304,6 +370,7 @@ export function AuctionManager() {
             })}
           </div>
         </section>
+        </>}
       </div>
 
       {showReset && (
