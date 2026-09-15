@@ -39,3 +39,7 @@
 .asta-modal p{color:var(--muted);line-height:1.55;margin:0 0 18px}
 .asta-modal-actions{display:flex;gap:10px;justify-content:center}
 @media(max-width:800px){.asta-stats{grid-template-columns:1fr 1fr}.asta-add-form{grid-template-columns:1fr}.asta-row,.asta-row.summary{grid-template-columns:1.5fr 1fr auto;font-size:14px}.asta-row-head{display:none}}
+
+
+.league-tile-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.league-tile-actions .primary-btn{flex:1}

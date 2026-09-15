@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Gavel, LogOut, Plus, ShieldCheck, Upload, UsersRound } from "lucide-react";
+import { ArrowRight, Gavel, LogOut, Plus, ShieldCheck, Trash2, Upload, UsersRound } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useLeague } from "@/components/league-provider";
 import { BrandLogo } from "@/components/brand-logo";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { ramera } from "@/data/ramera";
+import "@/app/asta-manager.css";
 
-type League = { id: string; name: string; season: string; mode: string; budget: number; roster_size: number; legacy_key: string | null };
+type League = { id: string; owner_id: string; name: string; season: string; mode: string; budget: number; roster_size: number; legacy_key: string | null };
 
 export default function LeaguesPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function LeaguesPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<League | null>(null);
   const [name, setName] = useState("");
   const [mode, setMode] = useState<"classic"|"mantra">("mantra");
   const [budget, setBudget] = useState(1000);
@@ -29,10 +31,34 @@ export default function LeaguesPage() {
     if (!user) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    const { data, error: loadError } = await supabase.from("leagues").select("id,name,season,mode,budget,roster_size,legacy_key").order("created_at", { ascending: false });
+    const { data, error: loadError } = await supabase.from("leagues").select("id,owner_id,name,season,mode,budget,roster_size,legacy_key").order("created_at", { ascending: false });
     if (loadError) setError(loadError.message);
     else setLeagues((data ?? []) as League[]);
   }, [user]);
+
+  async function deleteLeague(league: League) {
+    if (!user) return;
+    setBusy(true); setError("");
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) { setError("Supabase non configurato."); setBusy(false); return; }
+
+    // Elimina esplicitamente i figli, poi la lega (le policy RLS lo consentono al proprietario)
+    await supabase.from("auction_buys").delete().eq("league_id", league.id);
+    await supabase.from("player_status").delete().eq("league_id", league.id);
+    await supabase.from("lineups").delete().eq("league_id", league.id);
+    await supabase.from("league_members").delete().eq("league_id", league.id);
+    const { error: delError } = await supabase.from("leagues").delete().eq("id", league.id);
+
+    if (delError) {
+      setError(delError.message || "Impossibile eliminare l'asta. Verifica di esserne il proprietario.");
+    } else {
+      const stored = typeof window !== "undefined" ? window.localStorage.getItem("fantasta-active-league") : null;
+      if (stored === league.id && typeof window !== "undefined") window.localStorage.removeItem("fantasta-active-league");
+      setDeleteTarget(null);
+      await Promise.all([loadLeagues(), refreshLeagues()]);
+    }
+    setBusy(false);
+  }
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -142,9 +168,23 @@ export default function LeaguesPage() {
 
         <div className="league-grid">
           {!leagues.some(l=>l.legacy_key==="ramera-2026-27") && <article className="league-tile import-tile"><div className="league-icon"><Upload/></div><span className="eyebrow">IMPORT PRONTO</span><h2>RAMERA 2026/27</h2><p>10 squadre · 273 acquisti · Mantra · budget 1000. Importa questa specifica asta dal backup reale.</p><div className="import-check"><ShieldCheck size={16}/> RAMERA resterà una lega separata dalle altre</div><button className="primary-btn" onClick={importRamera} disabled={busy}>{busy?"Importazione…":"Importa RAMERA"} <ArrowRight size={17}/></button></article>}
-          {leagues.map(league => <article className="league-tile" key={league.id}><div className="league-icon"><Gavel/></div><span className="eyebrow">{league.mode.toUpperCase()} · {league.season}</span><h2>{league.name}</h2><p>Budget {league.budget} · rosa {league.roster_size}. Questa asta ha dati e gestione indipendenti.</p><div className="league-meta"><UsersRound size={16}/> {league.legacy_key ? "Asta importata" : "Asta personale"}</div><button className="primary-btn" onClick={()=>openLeague(league.id)}>Apri asta <ArrowRight size={17}/></button></article>)}
+          {leagues.map(league => <article className="league-tile" key={league.id}><div className="league-icon"><Gavel/></div><span className="eyebrow">{league.mode.toUpperCase()} · {league.season}</span><h2>{league.name}</h2><p>Budget {league.budget} · rosa {league.roster_size}. Questa asta ha dati e gestione indipendenti.</p><div className="league-meta"><UsersRound size={16}/> {league.legacy_key ? "Asta importata" : "Asta personale"}</div><div className="league-tile-actions"><button className="primary-btn" onClick={()=>openLeague(league.id)}>Apri asta <ArrowRight size={17}/></button>{league.owner_id === user.id && <button className="danger-btn" onClick={()=>setDeleteTarget(league)} disabled={busy} title="Elimina asta"><Trash2 size={16}/> Elimina</button>}</div></article>)}
         </div>
       </section>
+
+      {deleteTarget && (
+        <div className="asta-modal-backdrop" role="dialog" aria-modal="true" onClick={() => !busy && setDeleteTarget(null)}>
+          <div className="asta-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="asta-modal-icon"><Trash2/></div>
+            <h3>Sei sicuro?</h3>
+            <p>Verrà eliminata definitivamente l&apos;asta <strong>«{deleteTarget.name}»</strong> con tutti i suoi acquisti, membri e dati. L&apos;azione non è reversibile.</p>
+            <div className="asta-modal-actions">
+              <button className="secondary-btn" onClick={() => setDeleteTarget(null)} disabled={busy}>Annulla</button>
+              <button className="danger-btn" onClick={() => void deleteLeague(deleteTarget)} disabled={busy}><Trash2 size={16}/> {busy ? "Eliminazione…" : "Sì, elimina l'asta"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
