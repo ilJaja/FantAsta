@@ -26,6 +26,13 @@ export default function LeaguesPage() {
   const [mode, setMode] = useState<"classic"|"mantra">("mantra");
   const [budget, setBudget] = useState(1000);
   const [rosterSize, setRosterSize] = useState(25);
+  const [teamCount, setTeamCount] = useState(8);
+  const [teamNames, setTeamNames] = useState<string[]>(() => Array.from({ length: 8 }, () => ""));
+
+  // Ridimensiona l'array nomi quando cambia il numero di squadre
+  useEffect(() => {
+    setTeamNames(prev => Array.from({ length: teamCount }, (_, i) => prev[i] ?? ""));
+  }, [teamCount]);
 
   const loadLeagues = useCallback(async () => {
     if (!user) return;
@@ -79,14 +86,21 @@ export default function LeaguesPage() {
     const { data, error: leagueError } = await supabase.from("leagues").insert({
       owner_id: user.id, name, season: "2026/27", mode, budget, roster_size: rosterSize,
     }).select("id").single();
-    if (leagueError) setError(leagueError.message);
-    else {
-      await supabase.from("league_members").insert({ league_id: data.id, user_id: user.id, team_name: user.user_metadata?.display_name || "La mia squadra", is_admin: true });
-      selectLeague(data.id);
-      setName(""); setShowCreate(false);
-      await Promise.all([loadLeagues(), refreshLeagues()]);
-      router.push("/dashboard");
-    }
+    if (leagueError) { setError(leagueError.message); setBusy(false); return; }
+
+    const myDefault = user.user_metadata?.display_name || "La mia squadra";
+    const memberRows = teamNames.map((tname, i) => ({
+      league_id: data.id,
+      user_id: i === 0 ? user.id : null,
+      team_name: tname.trim() || (i === 0 ? myDefault : `Squadra ${i + 1}`),
+      is_admin: i === 0,
+    }));
+    await supabase.from("league_members").insert(memberRows);
+
+    selectLeague(data.id);
+    setName(""); setTeamNames(Array.from({ length: teamCount }, () => "")); setShowCreate(false);
+    await Promise.all([loadLeagues(), refreshLeagues()]);
+    router.push("/dashboard");
     setBusy(false);
   }
 
@@ -162,8 +176,24 @@ export default function LeaguesPage() {
           <label><span>Nome asta</span><input value={name} onChange={e=>setName(e.target.value)} placeholder="Es. I Veterani" required/></label>
           <label><span>Modalità</span><select value={mode} onChange={e=>setMode(e.target.value as "classic"|"mantra")}><option value="mantra">Mantra</option><option value="classic">Classic</option></select></label>
           <label><span>Budget</span><input type="number" min={100} value={budget} onChange={e=>setBudget(Number(e.target.value))}/></label>
-          <label><span>Rosa</span><input type="number" min={15} value={rosterSize} onChange={e=>setRosterSize(Number(e.target.value))}/></label>
-          <button className="primary-btn" disabled={busy}>Crea asta</button>
+          <label><span>Dimensione rosa</span><input type="number" min={15} value={rosterSize} onChange={e=>setRosterSize(Number(e.target.value))}/></label>
+          <label><span>Numero di partecipanti</span><input type="number" min={2} max={20} value={teamCount} onChange={e=>setTeamCount(Math.max(2, Math.min(20, Number(e.target.value))))}/></label>
+          <div className="team-names-section">
+            <span className="eyebrow">NOMI DELLE SQUADRE</span>
+            <div className="team-names-grid">
+              {teamNames.map((tname, i) => (
+                <label key={i} className={i === 0 ? "own-team" : ""}>
+                  <span>{i === 0 ? "👑 La tua squadra" : `Squadra ${i + 1}`}</span>
+                  <input
+                    value={tname}
+                    onChange={e=>{ const n=[...teamNames]; n[i]=e.target.value; setTeamNames(n); }}
+                    placeholder={i === 0 ? (user.user_metadata?.display_name || "La mia squadra") : "Es. Gli Squali"}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+          <button className="primary-btn" disabled={busy}>{busy ? "Creazione…" : "Crea asta"}</button>
         </form>}
 
         <div className="league-grid">

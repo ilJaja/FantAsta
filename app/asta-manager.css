@@ -43,3 +43,49 @@
 
 .league-tile-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .league-tile-actions .primary-btn{flex:1}
+
+
+/* --- Sezione nomi squadre nel form creazione asta --- */
+.team-names-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+.team-names-section > .eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--muted, #888);
+  text-transform: uppercase;
+}
+.team-names-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+}
+.team-names-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.team-names-grid label span {
+  font-size: 0.72rem;
+  color: var(--muted, #888);
+}
+.team-names-grid label.own-team span {
+  color: var(--gold, #d4a017);
+  font-weight: 600;
+}
+.team-names-grid input {
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border, #333);
+  background: var(--surface, #1a1a1a);
+  color: inherit;
+  font-size: 0.875rem;
+}
+@media (max-width: 500px) {
+  .team-names-grid { grid-template-columns: 1fr; }
+}
