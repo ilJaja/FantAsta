@@ -11,7 +11,6 @@ import { useLeague } from "@/components/league-provider";
 const nav = [
   ["/dashboard", "Dashboard", LayoutDashboard],
   ["/asta", "Asta", Gavel],
-  ["/classic", "Strategia Classic", Sparkles],
   ["/rosa", "Rosa", Shield],
   ["/formazione", "Formazione", Trophy],
   ["/giornata", "Giornata", CalendarDays],
